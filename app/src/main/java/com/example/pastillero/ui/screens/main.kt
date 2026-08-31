@@ -18,20 +18,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.example.pastillero.data.AppDatabase
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pastillero.data.Medicamento
 import com.example.pastillero.data.MomentoDia
-import kotlinx.coroutines.launch
+import com.example.pastillero.ui.viewmodel.AppViewModelFactory
+import com.example.pastillero.ui.viewmodel.MainViewModel
 import java.time.LocalTime
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(onLogout: () -> Unit = {}) {
+fun MainScreen(
+    onLogout: () -> Unit = {},
+    viewModel: MainViewModel = viewModel(factory = AppViewModelFactory(LocalContext.current))
+) {
     val context = LocalContext.current
-    val db = AppDatabase.getDatabase(context)
-    val listaMedicamentos by db.medicamentoDao().getAllMedicamentos().collectAsState(initial = emptyList())
-    val scope = rememberCoroutineScope()
+    val listaMedicamentos by viewModel.listaMedicamentos.collectAsState()
 
     var showSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
@@ -81,21 +83,21 @@ fun MainScreen(onLogout: () -> Unit = {}) {
                 SeccionMomento(
                     momento = MomentoDia.MANANA, 
                     medicamentos = listaMedicamentos,
-                    onDelete = { med -> scope.launch { db.medicamentoDao().deleteMedicamento(med) } }
+                    onDelete = { med -> viewModel.eliminarMedicamento(med) }
                 ) 
             }
             item { 
                 SeccionMomento(
                     momento = MomentoDia.TARDE, 
                     medicamentos = listaMedicamentos,
-                    onDelete = { med -> scope.launch { db.medicamentoDao().deleteMedicamento(med) } }
+                    onDelete = { med -> viewModel.eliminarMedicamento(med) }
                 ) 
             }
             item { 
                 SeccionMomento(
                     momento = MomentoDia.NOCHE, 
                     medicamentos = listaMedicamentos,
-                    onDelete = { med -> scope.launch { db.medicamentoDao().deleteMedicamento(med) } }
+                    onDelete = { med -> viewModel.eliminarMedicamento(med) }
                 ) 
             }
         }
@@ -107,8 +109,7 @@ fun MainScreen(onLogout: () -> Unit = {}) {
             ) {
                 FormularioMedicamento(
                     onGuardar = { nuevosMed ->
-                        scope.launch {
-                            nuevosMed.forEach { db.medicamentoDao().insertMedicamento(it) }
+                        viewModel.agregarMedicamentos(nuevosMed) {
                             showSheet = false
                             Toast.makeText(context, "Guardado con éxito", Toast.LENGTH_SHORT).show()
                         }

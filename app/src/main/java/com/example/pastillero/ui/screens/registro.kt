@@ -13,20 +13,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.pastillero.data.AppDatabase
-import com.example.pastillero.data.User
-import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pastillero.ui.viewmodel.AppViewModelFactory
+import com.example.pastillero.ui.viewmodel.RegistroViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegistroScreen(onNavegarALogin: () -> Unit) {
+fun RegistroScreen(
+    onNavegarALogin: () -> Unit,
+    viewModel: RegistroViewModel = viewModel(factory = AppViewModelFactory(LocalContext.current))
+) {
     var nombre by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val db = AppDatabase.getDatabase(context)
 
     Scaffold(
         topBar = {
@@ -121,20 +122,16 @@ fun RegistroScreen(onNavegarALogin: () -> Unit) {
             
             Button(
                 onClick = {
-                    if (nombre.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
-                        scope.launch {
-                            val existingUser = db.userDao().getUserByEmail(email)
-                            if (existingUser == null) {
-                                db.userDao().insertUser(User(nombre = nombre, email = email, password = password))
-                                Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
-                                onNavegarALogin()
-                            } else {
-                                Toast.makeText(context, "El correo ya está registrado", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    } else {
-                        Toast.makeText(context, "Por favor completa todos los campos", Toast.LENGTH_SHORT).show()
-                    }
+                    viewModel.registrarUsuario(
+                        nombre = nombre,
+                        email = email,
+                        password = password,
+                        onSuccess = {
+                            Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
+                            onNavegarALogin()
+                        },
+                        onError = { mensaje -> Toast.makeText(context, mensaje, Toast.LENGTH_SHORT).show() }
+                    )
                 },
                 modifier = Modifier
                     .fillMaxWidth()

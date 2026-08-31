@@ -11,12 +11,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.pastillero.data.AppDatabase
-import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pastillero.ui.viewmodel.AppViewModelFactory
+import com.example.pastillero.ui.viewmodel.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
+    viewModel: LoginViewModel = viewModel(factory = AppViewModelFactory(LocalContext.current)),
     onNavegarAPrincipal: () -> Unit = {},
     onNavegarARegistro: () -> Unit = {},
     onNavegarARecuperar: () -> Unit = {}
@@ -25,8 +27,6 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
 
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val db = AppDatabase.getDatabase(context)
 
     Scaffold(
         topBar = {
@@ -93,18 +93,12 @@ fun LoginScreen(
 
             Button(
                 onClick = {
-                    if (email.isNotEmpty() && password.isNotEmpty()) {
-                        scope.launch {
-                            val user = db.userDao().getUserByEmail(email)
-                            if (user != null && user.password == password) {
-                                onNavegarAPrincipal()
-                            } else {
-                                Toast.makeText(context, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    } else {
-                        Toast.makeText(context, "Por favor completa todos los campos", Toast.LENGTH_SHORT).show()
-                    }
+                    viewModel.iniciarSesion(
+                        email = email,
+                        password = password,
+                        onSuccess = { onNavegarAPrincipal() },
+                        onError = { mensaje -> Toast.makeText(context, mensaje, Toast.LENGTH_SHORT).show() }
+                    )
                 },
                 modifier = Modifier
                     .fillMaxWidth()

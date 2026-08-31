@@ -6,21 +6,17 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.pastillero.ui.screens.LoginScreen
 import com.example.pastillero.ui.screens.MainScreen
-import com.example.pastillero.ui.screens.RegistroScreen
 import com.example.pastillero.ui.screens.RecuperarScreen
+import com.example.pastillero.ui.screens.RegistroScreen
 import com.example.pastillero.ui.theme.PastilleroTheme
+import com.example.pastillero.ui.viewmodel.AppViewModelFactory
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -30,10 +26,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             PastilleroTheme {
                 val navController = rememberNavController()
+                val factory = AppViewModelFactory(LocalContext.current)
                 
                 NavHost(navController = navController, startDestination = "login") {
                     composable("login") {
                         LoginScreen(
+                            viewModel = viewModel(factory = factory),
                             onNavegarAPrincipal = {
                                 navController.navigate("principal") {
                                     popUpTo("login") { inclusive = true }
@@ -44,13 +42,20 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable("registro") {
-                        RegistroScreen(onNavegarALogin = { navController.popBackStack() })
+                        RegistroScreen(
+                            viewModel = viewModel(factory = factory),
+                            onNavegarALogin = { navController.popBackStack() }
+                        )
                     }
                     composable("recuperar") {
-                        RecuperarScreen(onNavegarALogin = { navController.popBackStack() })
+                        RecuperarScreen(
+                            viewModel = viewModel(factory = factory),
+                            onNavegarALogin = { navController.popBackStack() }
+                        )
                     }
                     composable("principal") {
                         MainScreen(
+                            viewModel = viewModel(factory = factory),
                             onLogout = {
                                 navController.navigate("login") {
                                     popUpTo("principal") { inclusive = true }
@@ -61,21 +66,5 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PastilleroTheme {
-        Greeting("Android")
     }
 }

@@ -11,20 +11,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.pastillero.data.AppDatabase
-import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pastillero.ui.viewmodel.AppViewModelFactory
+import com.example.pastillero.ui.viewmodel.RecuperarViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecuperarScreen(onNavegarALogin: () -> Unit) {
+fun RecuperarScreen(
+    onNavegarALogin: () -> Unit,
+    viewModel: RecuperarViewModel = viewModel(factory = AppViewModelFactory(LocalContext.current))
+) {
     var email by remember { mutableStateOf("") }
     var nuevaPassword by remember { mutableStateOf("") }
     var repetirPassword by remember { mutableStateOf("") }
     var emailVerificado by remember { mutableStateOf(false) }
     
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val db = AppDatabase.getDatabase(context)
 
     Scaffold(
         topBar = {
@@ -88,18 +90,11 @@ fun RecuperarScreen(onNavegarALogin: () -> Unit) {
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = {
-                        scope.launch {
-                            val user = db.userDao().getUserByEmail(email)
-                            if (user != null) {
-                                emailVerificado = true
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "No tienes una cuenta con este correo. Créala primero.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
+                        viewModel.verificarEmail(
+                            email = email,
+                            onSuccess = { emailVerificado = true },
+                            onError = { mensaje -> Toast.makeText(context, mensaje, Toast.LENGTH_SHORT).show() }
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -143,15 +138,16 @@ fun RecuperarScreen(onNavegarALogin: () -> Unit) {
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = {
-                        if (nuevaPassword == repetirPassword && nuevaPassword.isNotEmpty()) {
-                            scope.launch {
-                                db.userDao().updatePassword(email, nuevaPassword)
+                        viewModel.cambiarPassword(
+                            email = email,
+                            nuevaPassword = nuevaPassword,
+                            repetirPassword = repetirPassword,
+                            onSuccess = {
                                 Toast.makeText(context, "Contraseña actualizada con éxito", Toast.LENGTH_SHORT).show()
                                 onNavegarALogin()
-                            }
-                        } else {
-                            Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
-                        }
+                            },
+                            onError = { mensaje -> Toast.makeText(context, mensaje, Toast.LENGTH_SHORT).show() }
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()

@@ -5,6 +5,10 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.sqlite.db.SupportSQLiteDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Database(entities = [User::class, Medicamento::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
@@ -22,9 +26,32 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "pastillero_database"
-                ).build()
+                )
+                .addCallback(AppDatabaseCallback())
+                .build()
                 INSTANCE = instance
                 instance
+            }
+        }
+
+        private class AppDatabaseCallback : Callback() {
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                super.onCreate(db)
+                INSTANCE?.let { database ->
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val userDao = database.userDao()
+                        val usuariosIniciales = listOf(
+                            User(nombre = "Juan Pérez", email = "juan@gmail.com", password = "123"),
+                            User(nombre = "María López", email = "maria@gmail.com", password = "123"),
+                            User(nombre = "Carlos Gómez", email = "carlos@gmail.com", password = "123"),
+                            User(nombre = "Ana Torres", email = "ana@gmail.com", password = "123"),
+                            User(nombre = "Pedro Silva", email = "pedro@gmail.com", password = "123")
+                        )
+                        for (usuario in usuariosIniciales) {
+                            userDao.insertUser(usuario)
+                        }
+                    }
+                }
             }
         }
     }

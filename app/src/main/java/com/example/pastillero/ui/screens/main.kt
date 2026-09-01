@@ -1,23 +1,31 @@
 package com.example.pastillero.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.Vibration
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pastillero.data.Medicamento
 import com.example.pastillero.data.MomentoDia
@@ -37,6 +45,19 @@ fun MainScreen(
 
     var showSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
+
+    // Solicitar permiso de notificaciones automáticamente en Android 13+ (API 33+)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission(),
+            onResult = { }
+        )
+        LaunchedEffect(Unit) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -83,21 +104,36 @@ fun MainScreen(
                 SeccionMomento(
                     momento = MomentoDia.MANANA, 
                     medicamentos = listaMedicamentos,
-                    onDelete = { med -> viewModel.eliminarMedicamento(med) }
+                    onToggleTomado = { med -> viewModel.alternarEstadoTomado(med) },
+                    onProbarAlarma = { med ->
+                        Toast.makeText(context, "Esto es una vibración de prueba", Toast.LENGTH_SHORT).show()
+                        viewModel.probarNotificacionYVibracion(context, med)
+                    },
+                    onDelete = { med -> viewModel.eliminarMedicamento(context, med) }
                 ) 
             }
             item { 
                 SeccionMomento(
                     momento = MomentoDia.TARDE, 
                     medicamentos = listaMedicamentos,
-                    onDelete = { med -> viewModel.eliminarMedicamento(med) }
+                    onToggleTomado = { med -> viewModel.alternarEstadoTomado(med) },
+                    onProbarAlarma = { med ->
+                        Toast.makeText(context, "Esto es una vibración de prueba", Toast.LENGTH_SHORT).show()
+                        viewModel.probarNotificacionYVibracion(context, med)
+                    },
+                    onDelete = { med -> viewModel.eliminarMedicamento(context, med) }
                 ) 
             }
             item { 
                 SeccionMomento(
                     momento = MomentoDia.NOCHE, 
                     medicamentos = listaMedicamentos,
-                    onDelete = { med -> viewModel.eliminarMedicamento(med) }
+                    onToggleTomado = { med -> viewModel.alternarEstadoTomado(med) },
+                    onProbarAlarma = { med ->
+                        Toast.makeText(context, "Esto es una vibración de prueba", Toast.LENGTH_SHORT).show()
+                        viewModel.probarNotificacionYVibracion(context, med)
+                    },
+                    onDelete = { med -> viewModel.eliminarMedicamento(context, med) }
                 ) 
             }
         }
@@ -109,7 +145,7 @@ fun MainScreen(
             ) {
                 FormularioMedicamento(
                     onGuardar = { nuevosMed ->
-                        viewModel.agregarMedicamentos(nuevosMed) {
+                        viewModel.agregarMedicamentos(context, nuevosMed) {
                             showSheet = false
                             Toast.makeText(context, "Guardado con éxito", Toast.LENGTH_SHORT).show()
                         }
@@ -277,6 +313,8 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
 fun SeccionMomento(
     momento: MomentoDia, 
     medicamentos: List<Medicamento>,
+    onToggleTomado: (Medicamento) -> Unit,
+    onProbarAlarma: (Medicamento?) -> Unit,
     onDelete: (Medicamento) -> Unit
 ) {
     val filtrados = medicamentos.filter { it.momentoDia == momento }
@@ -300,12 +338,12 @@ fun SeccionMomento(
                     color = MaterialTheme.colorScheme.primary
                 )
                 IconButton(
-                    onClick = { /* Próximamente: Lógica de audio */ },
+                    onClick = { onProbarAlarma(filtrados.firstOrNull()) },
                     modifier = Modifier.size(64.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                        contentDescription = "Escuchar medicamentos",
+                        imageVector = Icons.Default.Vibration,
+                        contentDescription = "Probar vibración",
                         modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -320,16 +358,40 @@ fun SeccionMomento(
             } else {
                 filtrados.forEach { med ->
                     ListItem(
+                        leadingContent = {
+                            IconButton(
+                                onClick = { onToggleTomado(med) },
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                if (med.tomado) {
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = "Marcar como no tomado",
+                                        modifier = Modifier.size(36.dp),
+                                        tint = Color(0xFF2E7D32)
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Outlined.CheckCircle,
+                                        contentDescription = "Marcar como tomado",
+                                        modifier = Modifier.size(36.dp),
+                                        tint = MaterialTheme.colorScheme.outline
+                                    )
+                                }
+                            }
+                        },
                         headlineContent = { 
                             Text(
                                 med.nombre, 
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (med.tomado) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onSurface
                             ) 
                         },
                         supportingContent = { 
                             Text(
                                 med.dosis, 
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (med.tomado) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onSurfaceVariant
                             ) 
                         },
                         trailingContent = {

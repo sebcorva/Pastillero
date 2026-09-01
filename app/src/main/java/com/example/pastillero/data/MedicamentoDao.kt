@@ -11,6 +11,9 @@ interface MedicamentoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMedicamento(medicamento: Medicamento)
 
+    @Update
+    suspend fun updateMedicamento(medicamento: Medicamento)
+
     @Delete
     suspend fun deleteMedicamento(medicamento: Medicamento)
 }

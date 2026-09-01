@@ -19,7 +19,8 @@ data class Medicamento(
     val nombre: String,
     val dosis: String = "",
     val momentoDia: MomentoDia,
-    val horaExacta: LocalTime
+    val horaExacta: LocalTime,
+    val tomado: Boolean = false
 ) {
     @RequiresApi(Build.VERSION_CODES.O)
     fun obtenerHoraFormateada(): String {

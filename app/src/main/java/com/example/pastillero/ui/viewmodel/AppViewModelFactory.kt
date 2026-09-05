@@ -8,9 +8,11 @@ import com.example.pastillero.data.repository.MedicamentoRepository
 import com.example.pastillero.data.repository.UserRepository
 
 class AppViewModelFactory(context: Context) : ViewModelProvider.Factory {
-    private val database = AppDatabase.getDatabase(context)
-    private val userRepository = UserRepository(database.userDao())
-    private val medicamentoRepository = MedicamentoRepository(database.medicamentoDao())
+
+    //Uso de 'by lazy' para crear en memoria database, userRepository y medicamentoRepository cuando se solicite por primera vez un ViewModel
+    private val database by lazy { AppDatabase.getDatabase(context) }
+    private val userRepository by lazy { UserRepository(database.userDao()) }
+    private val medicamentoRepository by lazy { MedicamentoRepository(database.medicamentoDao()) }
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

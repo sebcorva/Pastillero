@@ -27,4 +27,14 @@ class Converters {
     fun momentoDiaToString(momento: MomentoDia?): String? {
         return momento?.name
     }
+
+    @TypeConverter
+    fun fromFormatoMedicamento(value: String?): FormatoMedicamento? {
+        return value?.let { FormatoMedicamento.valueOf(it) }
+    }
+
+    @TypeConverter
+    fun formatoMedicamentoToString(formato: FormatoMedicamento?): String? {
+        return formato?.name
+    }
 }

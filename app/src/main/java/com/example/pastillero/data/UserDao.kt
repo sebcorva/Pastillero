@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
+//Uso de interface para declarar las acciones que se realizaran sin especificar como se realizara
 @Dao
 interface UserDao {
     @Query("SELECT * FROM usuarios WHERE email = :email LIMIT 1")

@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pastillero.data.FormatoMedicamento
 import com.example.pastillero.data.Medicamento
 import com.example.pastillero.data.MomentoDia
 import com.example.pastillero.ui.viewmodel.AppViewModelFactory
@@ -162,6 +163,8 @@ fun MainScreen(
 fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
     var nombre by remember { mutableStateOf("") }
     var dosis by remember { mutableStateOf("") }
+    var formatoSeleccionado by remember { mutableStateOf(FormatoMedicamento.PASTILLA) }
+    //Usamos setOf ya que creamos un conjunto de elementos unicos para momentos del dia
     var momentosSeleccionados by remember { mutableStateOf(setOf(MomentoDia.MANANA)) }
     
     // Estados independientes para cada momento
@@ -187,6 +190,12 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
         Spacer(modifier = Modifier.height(24.dp))
 
         // Segmented Buttons para Momento del Día (Multiselección)
+        Text(
+            "Momento del día:", 
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.align(Alignment.Start)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
         MultiChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().height(64.dp)) {
             MomentoDia.entries.forEachIndexed { index, momento ->
                 SegmentedButton(
@@ -203,13 +212,38 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
                 ) {
                     Text(
                         momento.etiqueta,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        // Segmented Buttons para Formato del Medicamento (Selección única)
+        Text(
+            "Tipo de medicamento:", 
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.align(Alignment.Start)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().height(64.dp)) {
+            FormatoMedicamento.entries.forEachIndexed { index, formato ->
+                SegmentedButton(
+                    selected = formatoSeleccionado == formato,
+                    onClick = { formatoSeleccionado = formato },
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = FormatoMedicamento.entries.size),
+                    modifier = Modifier.fillMaxHeight()
+                ) {
+                    Text(
+                        formato.etiqueta,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
 
         OutlinedTextField(
             value = nombre,
@@ -232,7 +266,7 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
             onValueChange = { dosis = it },
             label = { 
                 Text(
-                    "Dosis (ej: 500mg, 1 tableta)", 
+                    "Cantidad o Dosis (ej: 1, 500, 10)", 
                     style = MaterialTheme.typography.bodyLarge 
                 ) 
             },
@@ -246,7 +280,8 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
         if (momentosSeleccionados.isNotEmpty()) {
             Text(
                 "Configura las horas:", 
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.align(Alignment.Start)
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -282,6 +317,7 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
         Button(
             onClick = {
                 if (nombre.isNotEmpty() && momentosSeleccionados.isNotEmpty()) {
+                    //Usamos .map para la creacion de un objeto por momento seleccionado
                     val listaNuevos = momentosSeleccionados.map { momento ->
                         val state = when(momento) {
                             MomentoDia.MANANA -> morningTimeState
@@ -291,6 +327,7 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
                         Medicamento(
                             nombre = nombre,
                             dosis = dosis,
+                            formato = formatoSeleccionado,
                             momentoDia = momento,
                             horaExacta = LocalTime.of(state.hour, state.minute)
                         )
@@ -389,7 +426,7 @@ fun SeccionMomento(
                         },
                         supportingContent = { 
                             Text(
-                                med.dosis, 
+                                med.obtenerInstruccionDosis(), 
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = if (med.tomado) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onSurfaceVariant
                             ) 

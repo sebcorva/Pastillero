@@ -34,12 +34,14 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        //Uso de override dentro de la funcion onCreate de la clase 'RoomDatabase.Callback'
         private class AppDatabaseCallback : Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
                 INSTANCE?.let { database ->
                     CoroutineScope(Dispatchers.IO).launch {
                         val userDao = database.userDao()
+                        //Usamos listOf ya que creamos una coleccion inmutable y ordenada de los cinco usuarios iniciales
                         val usuariosIniciales = listOf(
                             User(nombre = "Juan Pérez", email = "juan@gmail.com", password = "123"),
                             User(nombre = "María López", email = "maria@gmail.com", password = "123"),
@@ -47,8 +49,9 @@ abstract class AppDatabase : RoomDatabase() {
                             User(nombre = "Ana Torres", email = "ana@gmail.com", password = "123"),
                             User(nombre = "Pedro Silva", email = "pedro@gmail.com", password = "123")
                         )
-                        for (usuario in usuariosIniciales) {
-                            userDao.insertUser(usuario)
+                        //Bucle forEach para la insercion de usuarios iniciales
+                        usuariosIniciales.forEach{
+                            userDao.insertUser(it)
                         }
                     }
                 }

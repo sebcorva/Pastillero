@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.pastillero.utils.PasswordHasher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,13 +42,14 @@ abstract class AppDatabase : RoomDatabase() {
                 INSTANCE?.let { database ->
                     CoroutineScope(Dispatchers.IO).launch {
                         val userDao = database.userDao()
-                        //Usamos listOf ya que creamos una coleccion inmutable y ordenada de los cinco usuarios iniciales
+                        //Usamos listOf ya que creamos una coleccion inmutable y ordenada de los cinco usuarios iniciales con contraseñas encriptadas con SHA-256
+                        val passwordEncriptada = PasswordHasher.hash("123")
                         val usuariosIniciales = listOf(
-                            User(nombre = "Juan Pérez", email = "juan@gmail.com", password = "123"),
-                            User(nombre = "María López", email = "maria@gmail.com", password = "123"),
-                            User(nombre = "Carlos Gómez", email = "carlos@gmail.com", password = "123"),
-                            User(nombre = "Ana Torres", email = "ana@gmail.com", password = "123"),
-                            User(nombre = "Pedro Silva", email = "pedro@gmail.com", password = "123")
+                            User(nombre = "Juan Pérez", email = "juan@gmail.com", password = passwordEncriptada),
+                            User(nombre = "María López", email = "maria@gmail.com", password = passwordEncriptada),
+                            User(nombre = "Carlos Gómez", email = "carlos@gmail.com", password = passwordEncriptada),
+                            User(nombre = "Ana Torres", email = "ana@gmail.com", password = passwordEncriptada),
+                            User(nombre = "Pedro Silva", email = "pedro@gmail.com", password = passwordEncriptada)
                         )
                         //Bucle forEach para la insercion de usuarios iniciales
                         usuariosIniciales.forEach{

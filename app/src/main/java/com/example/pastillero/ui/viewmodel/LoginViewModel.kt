@@ -3,6 +3,7 @@ package com.example.pastillero.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pastillero.data.repository.UserRepository
+import com.example.pastillero.utils.PasswordHasher
 import kotlinx.coroutines.launch
 
 class LoginViewModel(private val userRepository: UserRepository) : ViewModel() {
@@ -19,7 +20,8 @@ class LoginViewModel(private val userRepository: UserRepository) : ViewModel() {
 
         viewModelScope.launch {
             val user = userRepository.getUserByEmail(email)
-            if (user != null && user.password == password) {
+            val passwordHashIngresada = PasswordHasher.hash(password)
+            if (user != null && user.password == passwordHashIngresada) {
                 onSuccess()
             } else {
                 onError("Correo o contraseña incorrectos")

@@ -3,6 +3,7 @@ package com.example.pastillero.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pastillero.data.repository.UserRepository
+import com.example.pastillero.utils.PasswordHasher
 import kotlinx.coroutines.launch
 
 class RecuperarViewModel(private val userRepository: UserRepository) : ViewModel() {
@@ -39,7 +40,8 @@ class RecuperarViewModel(private val userRepository: UserRepository) : ViewModel
         }
 
         viewModelScope.launch {
-            userRepository.updatePassword(email, nuevaPassword)
+            val nuevaPasswordHash = PasswordHasher.hash(nuevaPassword)
+            userRepository.updatePassword(email, nuevaPasswordHash)
             onSuccess()
         }
     }

@@ -10,6 +10,9 @@ import android.os.VibratorManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 
+/**
+ * Objeto auxiliar para la gestión de canales de notificaciones y patrones de vibración táctil.
+ */
 object MedicamentoNotificationHelper {
     private const val CHANNEL_ID = "medicamentos_channel_id"
     private const val CHANNEL_NAME = "Recordatorios de Medicamentos"
@@ -19,6 +22,11 @@ object MedicamentoNotificationHelper {
     // [espera=0ms, vib1=300ms, pausa=150ms, vib2=300ms, pausa=500ms, vib3=700ms]
     val patronVibracion = longArrayOf(0, 300, 150, 300, 500, 700)
 
+    /**
+     * Crea el canal de notificación de alta prioridad requerido en Android 8.0 (API 26) o superior.
+     *
+     * @param context Contexto de la aplicación.
+     */
     fun crearCanalNotificacion(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -36,6 +44,14 @@ object MedicamentoNotificationHelper {
         }
     }
 
+    /**
+     * Construye y despliega la notificación flotante de alta prioridad en pantalla.
+     *
+     * @param context Contexto de ejecución.
+     * @param nombreMedicamento Nombre del remedio a mostrar en el título.
+     * @param dosis Cantidad/Dosis del remedio a mostrar en el contenido.
+     * @throws SecurityException Captura el fallo de seguridad en caso de que los permisos de notificación hayan sido revocados en Android 13+.
+     */
     fun mostrarNotificacionMedicamento(context: Context, nombreMedicamento: String, dosis: String) {
         crearCanalNotificacion(context)
 
@@ -55,10 +71,17 @@ object MedicamentoNotificationHelper {
             val notificationManager = NotificationManagerCompat.from(context)
             notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
         } catch (e: SecurityException) {
+            // Manejo de excepción de seguridad si no hay permisos de notificación
             e.printStackTrace()
         }
     }
 
+    /**
+     * Ejecuta directamente el patrón de vibración (2 pulsos seguidos + 1 posterior) en el motor háptico del teléfono.
+     *
+     * @param context Contexto del sistema.
+     * @throws Exception Captura cualquier fallo genérico de hardware o de servicio de vibración no disponible.
+     */
     fun ejecutarVibracion(context: Context) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -80,6 +103,7 @@ object MedicamentoNotificationHelper {
                 }
             }
         } catch (e: Exception) {
+            // Manejo de excepción genérica para evitar cierres si el hardware de vibración falla
             e.printStackTrace()
         }
     }

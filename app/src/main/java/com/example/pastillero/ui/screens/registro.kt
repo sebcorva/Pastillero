@@ -1,6 +1,5 @@
 package com.example.pastillero.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -16,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pastillero.ui.viewmodel.AppViewModelFactory
 import com.example.pastillero.ui.viewmodel.RegistroViewModel
+import com.example.pastillero.utils.mostrarToast
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -127,10 +127,10 @@ fun RegistroScreen(
                         email = email,
                         password = password,
                         onSuccess = {
-                            Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
+                            context.mostrarToast("Registro exitoso")
                             onNavegarALogin()
                         },
-                        onError = { mensaje -> Toast.makeText(context, mensaje, Toast.LENGTH_SHORT).show() }
+                        onError = { mensaje -> context.mostrarToast(mensaje) }
                     )
                 },
                 modifier = Modifier

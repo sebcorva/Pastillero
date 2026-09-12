@@ -51,8 +51,8 @@ abstract class AppDatabase : RoomDatabase() {
                             User(nombre = "Ana Torres", email = "ana@gmail.com", password = passwordEncriptada),
                             User(nombre = "Pedro Silva", email = "pedro@gmail.com", password = passwordEncriptada)
                         )
-                        //Bucle forEach para la insercion de usuarios iniciales
-                        usuariosIniciales.forEach{
+                        // Operación de colección .forEach: Recorre cada elemento 'it' de la lista 'usuariosIniciales' para insertarlo en la base de datos Room
+                        usuariosIniciales.forEach {
                             userDao.insertUser(it)
                         }
                     }

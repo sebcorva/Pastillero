@@ -1,6 +1,5 @@
 package com.example.pastillero.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -14,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pastillero.ui.viewmodel.AppViewModelFactory
 import com.example.pastillero.ui.viewmodel.RecuperarViewModel
+import com.example.pastillero.utils.mostrarToast
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,7 +93,7 @@ fun RecuperarScreen(
                         viewModel.verificarEmail(
                             email = email,
                             onSuccess = { emailVerificado = true },
-                            onError = { mensaje -> Toast.makeText(context, mensaje, Toast.LENGTH_SHORT).show() }
+                            onError = { mensaje -> context.mostrarToast(mensaje) }
                         )
                     },
                     modifier = Modifier
@@ -143,10 +143,10 @@ fun RecuperarScreen(
                             nuevaPassword = nuevaPassword,
                             repetirPassword = repetirPassword,
                             onSuccess = {
-                                Toast.makeText(context, "Contraseña actualizada con éxito", Toast.LENGTH_SHORT).show()
+                                context.mostrarToast("Contraseña actualizada con éxito")
                                 onNavegarALogin()
                             },
-                            onError = { mensaje -> Toast.makeText(context, mensaje, Toast.LENGTH_SHORT).show() }
+                            onError = { mensaje -> context.mostrarToast(mensaje) }
                         )
                     },
                     modifier = Modifier

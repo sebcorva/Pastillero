@@ -34,6 +34,15 @@ import com.example.pastillero.ui.viewmodel.AppViewModelFactory
 import com.example.pastillero.ui.viewmodel.MainViewModel
 import java.time.LocalTime
 
+/**
+ * Pantalla principal del pastillero ("MainScreen").
+ *
+ * Muestra el listado de medicamentos organizados por momentos del día (Mañana, Tarde, Noche),
+ * permite registrar la toma de remedios, eliminar registros y lanzar pruebas de vibración/alarma.
+ *
+ * @param onLogout Callback que se ejecuta cuando el usuario presiona el botón de cerrar sesión.
+ * @param viewModel Instancia del [MainViewModel] encargada de gestionar el estado reactivo y operaciones de base de datos.
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,6 +69,13 @@ fun MainScreen(
         }
     }
 
+    // Uso de Array (arrayOf)
+    val momentosArray = arrayOf(
+        MomentoDia.MANANA,
+        MomentoDia.TARDE,
+        MomentoDia.NOCHE
+    )
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -85,6 +101,7 @@ fun MainScreen(
             )
         },
         floatingActionButton = {
+            // Función Lambda Callback del botón '+': Activa el estado 'showSheet = true' para abrir el modal del formulario
             LargeFloatingActionButton(onClick = { showSheet = true }) {
                 Icon(
                     Icons.Default.Add, 
@@ -101,41 +118,19 @@ fun MainScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item { 
-                SeccionMomento(
-                    momento = MomentoDia.MANANA, 
-                    medicamentos = listaMedicamentos,
-                    onToggleTomado = { med -> viewModel.alternarEstadoTomado(med) },
-                    onProbarAlarma = { med ->
-                        Toast.makeText(context, "Esto es una vibración de prueba", Toast.LENGTH_SHORT).show()
-                        viewModel.probarNotificacionYVibracion(context, med)
-                    },
-                    onDelete = { med -> viewModel.eliminarMedicamento(context, med) }
-                ) 
-            }
-            item { 
-                SeccionMomento(
-                    momento = MomentoDia.TARDE, 
-                    medicamentos = listaMedicamentos,
-                    onToggleTomado = { med -> viewModel.alternarEstadoTomado(med) },
-                    onProbarAlarma = { med ->
-                        Toast.makeText(context, "Esto es una vibración de prueba", Toast.LENGTH_SHORT).show()
-                        viewModel.probarNotificacionYVibracion(context, med)
-                    },
-                    onDelete = { med -> viewModel.eliminarMedicamento(context, med) }
-                ) 
-            }
-            item { 
-                SeccionMomento(
-                    momento = MomentoDia.NOCHE, 
-                    medicamentos = listaMedicamentos,
-                    onToggleTomado = { med -> viewModel.alternarEstadoTomado(med) },
-                    onProbarAlarma = { med ->
-                        Toast.makeText(context, "Esto es una vibración de prueba", Toast.LENGTH_SHORT).show()
-                        viewModel.probarNotificacionYVibracion(context, med)
-                    },
-                    onDelete = { med -> viewModel.eliminarMedicamento(context, med) }
-                ) 
+            momentosArray.forEach { momento ->
+                item { 
+                    SeccionMomento(
+                        momento = momento, 
+                        medicamentos = listaMedicamentos,
+                        onToggleTomado = { med -> viewModel.alternarEstadoTomado(med) },
+                        onProbarAlarma = { med ->
+                            Toast.makeText(context, "Esto es una vibración de prueba", Toast.LENGTH_SHORT).show()
+                            viewModel.probarNotificacionYVibracion(context, med)
+                        },
+                        onDelete = { med -> viewModel.eliminarMedicamento(context, med) }
+                    ) 
+                }
             }
         }
 
@@ -157,15 +152,30 @@ fun MainScreen(
     }
 }
 
+/**
+ * Componente modal (Bottom Sheet) que despliega el formulario para agregar nuevos medicamentos.
+ *
+ * Permite seleccionar los momentos del día (multiselección), el formato de medicamento (Pastilla, Jarabe, etc.),
+ * ingresar el nombre, la dosis y configurar las horas exactas mediante un selector numérico.
+ *
+ * @param onGuardar Callback que recibe la lista de instancias de [Medicamento] generadas para guardarlas en la base de datos.
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
+    // Uso de Array (arrayOf) para definir los momentos del día
+    val momentosArray = arrayOf(
+        MomentoDia.MANANA,
+        MomentoDia.TARDE,
+        MomentoDia.NOCHE
+    )
+
     var nombre by remember { mutableStateOf("") }
     var dosis by remember { mutableStateOf("") }
     var formatoSeleccionado by remember { mutableStateOf(FormatoMedicamento.PASTILLA) }
-    //Usamos setOf ya que creamos un conjunto de elementos unicos para momentos del dia
-    var momentosSeleccionados by remember { mutableStateOf(setOf(MomentoDia.MANANA)) }
+    // Usamos setOf inicializado con el primer elemento del arreglo momentosArray
+    var momentosSeleccionados by remember { mutableStateOf(setOf(momentosArray[0])) }
     
     // Estados independientes para cada momento
     val morningTimeState = rememberTimePickerState(initialHour = 8, is24Hour = false)
@@ -189,7 +199,7 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
         
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Segmented Buttons para Momento del Día (Multiselección)
+        // Segmented Buttons para Momento del Día (Multiselección usando momentosArray)
         Text(
             "Momento del día:", 
             style = MaterialTheme.typography.titleMedium,
@@ -197,7 +207,7 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         MultiChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().height(64.dp)) {
-            MomentoDia.entries.forEachIndexed { index, momento ->
+            momentosArray.forEachIndexed { index, momento ->
                 SegmentedButton(
                     checked = momentosSeleccionados.contains(momento),
                     onCheckedChange = { isChecked ->
@@ -207,7 +217,7 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
                             momentosSeleccionados - momento
                         }
                     },
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = MomentoDia.entries.size),
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = momentosArray.size),
                     modifier = Modifier.fillMaxHeight()
                 ) {
                     Text(
@@ -218,7 +228,7 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Segmented Buttons para Formato del Medicamento (Selección única)
         Text(
@@ -285,7 +295,7 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            MomentoDia.entries.forEach { momento ->
+            momentosArray.forEach { momento ->
                 if (momentosSeleccionados.contains(momento)) {
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -317,7 +327,7 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
         Button(
             onClick = {
                 if (nombre.isNotEmpty() && momentosSeleccionados.isNotEmpty()) {
-                    //Usamos .map para la creacion de un objeto por momento seleccionado
+                    // Operación de colección .map: Transforma cada horario seleccionado del Set en un nuevo objeto 'Medicamento'
                     val listaNuevos = momentosSeleccionados.map { momento ->
                         val state = when(momento) {
                             MomentoDia.MANANA -> morningTimeState
@@ -345,6 +355,15 @@ fun FormularioMedicamento(onGuardar: (List<Medicamento>) -> Unit) {
     }
 }
 
+/**
+ * Tarjeta contenedora que agrupa y despliega los medicamentos filtrados para un [MomentoDia] específico.
+ *
+ * @param momento El bloque horario a representar ([MomentoDia.MANANA], [MomentoDia.TARDE] o [MomentoDia.NOCHE]).
+ * @param medicamentos Lista completa de medicamentos traídos desde el estado del ViewModel.
+ * @param onToggleTomado Callback para conmutar el estado de confirmación visual (tomado / no tomado).
+ * @param onProbarAlarma Callback para probar manualmente la notificación visible y el patrón de vibración.
+ * @param onDelete Callback para eliminar un medicamento específico de la base de datos.
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SeccionMomento(
@@ -354,6 +373,7 @@ fun SeccionMomento(
     onProbarAlarma: (Medicamento?) -> Unit,
     onDelete: (Medicamento) -> Unit
 ) {
+    // Operación de colección .filter: Filtra la lista completa conservando solo los medicamentos del momento actual
     val filtrados = medicamentos.filter { it.momentoDia == momento }
     
     Card(
@@ -396,6 +416,7 @@ fun SeccionMomento(
                 filtrados.forEach { med ->
                     ListItem(
                         leadingContent = {
+                            // Función Lambda Callback del check de tomado: Notifica el cambio de estado pasando la entidad 'med' seleccionada
                             IconButton(
                                 onClick = { onToggleTomado(med) },
                                 modifier = Modifier.size(48.dp)

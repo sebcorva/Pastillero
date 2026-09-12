@@ -11,9 +11,21 @@ import com.example.pastillero.receiver.MedicamentoAlarmReceiver
 import java.time.LocalDateTime
 import java.time.ZoneId
 
+/**
+ * Gestor encargado de programar y cancelar alarmas exactas en el servicio [AlarmManager] del sistema Android.
+ *
+ * @param context Contexto de la aplicación.
+ */
 class MedicamentoAlarmScheduler(private val context: Context) {
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
+    /**
+     * Programa una alarma en el sistema para la hora exacta configurada en la entidad [Medicamento].
+     *
+     * @param medicamento El medicamento que se va a programar.
+     * @throws SecurityException Captura el fallo en Android 12+ si el permiso de alarmas exactas no está concedido,
+     * realizando un plan de contingencia (fallback) con una alarma no exacta.
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     fun programarAlarma(medicamento: Medicamento) {
         val intent = Intent(context, MedicamentoAlarmReceiver::class.java).apply {
@@ -47,6 +59,7 @@ class MedicamentoAlarmScheduler(private val context: Context) {
                 pendingIntent
             )
         } catch (e: SecurityException) {
+            // Manejo de excepción de seguridad: si no hay permiso de alarma exacta, se programa una alarma estándar
             alarmManager.set(
                 AlarmManager.RTC_WAKEUP,
                 tiempoMillis,
@@ -55,6 +68,11 @@ class MedicamentoAlarmScheduler(private val context: Context) {
         }
     }
 
+    /**
+     * Cancela la alarma previamente programada para un medicamento en el sistema.
+     *
+     * @param medicamento El medicamento cuya alarma se desea cancelar.
+     */
     fun cancelarAlarma(medicamento: Medicamento) {
         val intent = Intent(context, MedicamentoAlarmReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(

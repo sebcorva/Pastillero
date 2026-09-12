@@ -7,7 +7,21 @@ import com.example.pastillero.data.repository.UserRepository
 import com.example.pastillero.utils.PasswordHasher
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel encargado de la lógica y validación para el registro de nuevos usuarios.
+ *
+ * @property userRepository Repositorio de usuarios.
+ */
 class RegistroViewModel(private val userRepository: UserRepository) : ViewModel() {
+    /**
+     * Valida los campos ingresados, encripta la contraseña e inserta el nuevo usuario si el correo no está registrado.
+     *
+     * @param nombre Nombre del usuario.
+     * @param email Correo electrónico.
+     * @param password Contraseña ingresada.
+     * @param onSuccess Callback ejecutado al completar el registro con éxito.
+     * @param onError Callback que notifica cualquier error de validación o duplicidad de correo.
+     */
     fun registrarUsuario(
         nombre: String,
         email: String,

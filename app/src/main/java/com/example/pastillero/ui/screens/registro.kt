@@ -17,6 +17,14 @@ import com.example.pastillero.ui.viewmodel.AppViewModelFactory
 import com.example.pastillero.ui.viewmodel.RegistroViewModel
 import com.example.pastillero.utils.mostrarToast
 
+/**
+ * Pantalla de registro de nuevos usuarios ("RegistroScreen").
+ *
+ * Captura el nombre, correo y contraseña del usuario, procesando su registro y encriptación vía [RegistroViewModel].
+ *
+ * @param onNavegarALogin Callback para regresar a la pantalla de inicio de sesión.
+ * @param viewModel Instancia del [RegistroViewModel] inyectada por [AppViewModelFactory].
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistroScreen(

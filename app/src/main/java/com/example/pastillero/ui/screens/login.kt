@@ -15,6 +15,17 @@ import com.example.pastillero.ui.viewmodel.AppViewModelFactory
 import com.example.pastillero.ui.viewmodel.LoginViewModel
 import com.example.pastillero.utils.mostrarToast
 
+/**
+ * Pantalla de inicio de sesión ("LoginScreen").
+ *
+ * Permite al usuario ingresar sus credenciales (correo electrónico y contraseña),
+ * validarlas mediante [LoginViewModel] y navegar a las pantallas de Registro, Recuperación o Principal.
+ *
+ * @param viewModel Instancia del [LoginViewModel] inyectada por la fábrica [AppViewModelFactory].
+ * @param onNavegarAPrincipal Callback para navegar a la pantalla principal tras un inicio de sesión exitoso.
+ * @param onNavegarARegistro Callback para navegar a la pantalla de creación de cuenta.
+ * @param onNavegarARecuperar Callback para navegar a la pantalla de recuperación de contraseña.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(

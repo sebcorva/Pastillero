@@ -15,6 +15,14 @@ import com.example.pastillero.ui.viewmodel.AppViewModelFactory
 import com.example.pastillero.ui.viewmodel.RecuperarViewModel
 import com.example.pastillero.utils.mostrarToast
 
+/**
+ * Pantalla de recuperación de clave ("RecuperarScreen").
+ *
+ * Permite verificar la existencia de un correo registrado y posteriormente actualizar la contraseña con su respectivo hash SHA-256.
+ *
+ * @param onNavegarALogin Callback para regresar a la pantalla de inicio de sesión.
+ * @param viewModel Instancia del [RecuperarViewModel] inyectada por [AppViewModelFactory].
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecuperarScreen(

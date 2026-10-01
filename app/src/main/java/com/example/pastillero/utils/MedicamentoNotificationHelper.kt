@@ -9,6 +9,7 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.example.pastillero.R
 
 /**
  * Objeto auxiliar para la gestión de canales de notificaciones y patrones de vibración táctil.
@@ -59,7 +60,7 @@ object MedicamentoNotificationHelper {
         ejecutarVibracion(context)
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("⏰ Hora de tu medicamento")
             .setContentText("Es hora de tomar: $nombreMedicamento ($dosis)")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -80,20 +81,20 @@ object MedicamentoNotificationHelper {
      * Ejecuta directamente el patrón de vibración (2 pulsos seguidos + 1 posterior) en el motor háptico del teléfono.
      *
      * @param context Contexto del sistema.
-     * @throws Exception Captura cualquier fallo genérico de hardware o de servicio de vibración no disponible.
+     * @throws SecurityException Captura la excepción específica de seguridad si los permisos del hardware de vibración están restringidos.
      */
     fun ejecutarVibracion(context: Context) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-                val vibrator = vibratorManager.defaultVibrator
-                if (vibrator.hasVibrator()) {
+                val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager?
+                val vibrator = vibratorManager?.defaultVibrator
+                if (vibrator != null && vibrator.hasVibrator()) {
                     vibrator.vibrate(VibrationEffect.createWaveform(patronVibracion, -1))
                 }
             } else {
                 @Suppress("DEPRECATION")
-                val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                if (vibrator.hasVibrator()) {
+                val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
+                if (vibrator != null && vibrator.hasVibrator()) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         vibrator.vibrate(VibrationEffect.createWaveform(patronVibracion, -1))
                     } else {
@@ -102,8 +103,8 @@ object MedicamentoNotificationHelper {
                     }
                 }
             }
-        } catch (e: Exception) {
-            // Manejo de excepción genérica para evitar cierres si el hardware de vibración falla
+        } catch (e: SecurityException) {
+            // Manejo específico de la excepción de seguridad de Android
             e.printStackTrace()
         }
     }

@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -17,6 +18,7 @@ import com.example.pastillero.ui.screens.RecuperarScreen
 import com.example.pastillero.ui.screens.RegistroScreen
 import com.example.pastillero.ui.theme.PastilleroTheme
 import com.example.pastillero.ui.viewmodel.AppViewModelFactory
+import com.example.pastillero.utils.SessionManager
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -26,9 +28,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             PastilleroTheme {
                 val navController = rememberNavController()
-                val factory = AppViewModelFactory(LocalContext.current)
+                val context = LocalContext.current
+                val factory = remember { AppViewModelFactory(context) }
+                val sessionManager = remember { SessionManager(context) }
+
+                // Definir destino inicial dinámico basándose en si la sesión está activa en SharedPreferences
+                val startDestination = if (sessionManager.estaLogueado()) "principal" else "login"
                 
-                NavHost(navController = navController, startDestination = "login") {
+                NavHost(navController = navController, startDestination = startDestination) {
                     composable("login") {
                         LoginScreen(
                             viewModel = viewModel(factory = factory),

@@ -13,7 +13,7 @@ class MedicamentoRepository(private val medicamentoDao: MedicamentoDao) {
     /**
      * Flujo reactivo con la lista de todos los medicamentos registrados.
      */
-    val allMedicamentos: Flow<List<Medicamento>> = medicamentoDao.getAllMedicamentos()
+    val allMedicamentos: Flow<List<Medicamento>> get() = medicamentoDao.getAllMedicamentos()
 
     /**
      * Guarda un medicamento en la base de datos.

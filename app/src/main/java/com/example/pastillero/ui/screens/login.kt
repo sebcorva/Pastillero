@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pastillero.ui.viewmodel.AppViewModelFactory
 import com.example.pastillero.ui.viewmodel.LoginViewModel
+import com.example.pastillero.utils.SessionManager
 import com.example.pastillero.utils.mostrarToast
 
 /**
@@ -107,7 +108,11 @@ fun LoginScreen(
                     viewModel.iniciarSesion(
                         email = email,
                         password = password,
-                        onSuccess = { onNavegarAPrincipal() },
+                        onSuccess = {
+                            // Guardar sesión activa con SharedPreferences
+                            SessionManager(context).guardarSesion(email)
+                            onNavegarAPrincipal()
+                        },
                         onError = { mensaje -> context.mostrarToast(mensaje) }
                     )
                 },

@@ -32,6 +32,8 @@ import com.example.pastillero.data.Medicamento
 import com.example.pastillero.data.MomentoDia
 import com.example.pastillero.ui.viewmodel.AppViewModelFactory
 import com.example.pastillero.ui.viewmodel.MainViewModel
+import com.example.pastillero.utils.SessionManager
+import com.example.pastillero.utils.mostrarToast
 import java.time.LocalTime
 
 /**
@@ -87,7 +89,11 @@ fun MainScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = onLogout,
+                        onClick = {
+                            // Borrar sesión activa en SharedPreferences al cerrar sesión
+                            SessionManager(context).cerrarSesion()
+                            onLogout()
+                        },
                         modifier = Modifier.size(64.dp)
                     ) {
                         Icon(
